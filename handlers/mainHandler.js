@@ -1,5 +1,5 @@
 const config = require('../config.js');
-var rp = require('request-promise');
+const rp = require('request-promise');
 
 const mainHandler = {
     'LaunchRequest': function () {
@@ -16,15 +16,33 @@ const mainHandler = {
     		classType = "E",
     		src_code = undefined,
     		dest_code = undefined;
+    		RESPONSE_TEXT = "",
+    		RANDOM_FAIL = getRandomSpeechcon(failSpeechcons);
 
-		    var dateObj = new Date(date);
-		    var month = '' + (dateObj.getMonth() + 1);
-		    var day = '' + dateObj.getDate();
-		    var year = '' + dateObj.getFullYear();
-		    var dateNew =   day + "/" + month + "/" + year;
+		    let dateObj = new Date(date);
+		    let currentDateObj = new Date();
+
+		    let currentMonth = '' + (currentDateObj.getMonth() + 1);
+		    let currentDay = '' + currentDateObj.getDate();
+		    let currentYear = '' + currentDateObj.getFullYear();
+			
+			currentDateObj = new Date(currentMonth+"-"+currentDay+"-"+currentYear);
+
+		    if (dateObj.getTime() < currentDateObj.getTime()) {
+		    	// Date is in past
+		    	RESPONSE_TEXT = "<say-as interpret-as=\"interjection\">"+ RANDOM_FAIL +"</say-as>! The date should be today's date or a date in future. Please try again.";
+		    	this.response.cardRenderer(""+ RANDOM_FAIL +"! The date should be today's date or a date in future. Please try again.");
+		        this.response.speak(RESPONSE_TEXT);
+		        this.emit(':responseReady');
+		    }
+
+		    let month = '' + (dateObj.getMonth() + 1);
+		    let day = '' + dateObj.getDate();
+		    let year = '' + dateObj.getFullYear();
+		    let dateNew =   day + "/" + month + "/" + year;
 
     	// Get place codes
-    	for (var i = config.CITIES.length - 1; i >= 0; i--) {
+    	for (let i = config.CITIES.length - 1; i >= 0; i--) {
     		if(config.CITIES[i].city.toLowerCase() == dest.toLowerCase()){
     			dest_code = config.CITIES[i].code;
     		}
@@ -70,20 +88,26 @@ const mainHandler = {
 			.then(result => {
 				console.log(result);
 				result = JSON.parse(result);
+				if (result.flights === undefined) {
+					// there are no flights
+					RESPONSE_TEXT = "<say-as interpret-as=\"interjection\">"+ RANDOM_FAIL +"</say-as>! There seems to be no flights for this route and date. Please try again with a different date.";
+			    	this.response.cardRenderer(""+ RANDOM_FAIL +"!  There seems to be no flights for this route and date. Please try again with a different date.");
+			        this.response.speak(RESPONSE_TEXT);
+			        this.emit(':responseReady');
+				}
 				let flight_class = result.flights["0"].le["0"].cls;
+				let flight_alirlines = result.flights["0"].le["0"].an;
+				let flight_code = result.flights["0"].le["0"].cc;
+				let flight_number = result.flights["0"].le["0"].fn;
+				
 				let departure_date = result.flights["0"].le["0"].fmtDeparture;
 				let departure_time = result.flights["0"].le["0"].fmtDepartureTime;
 				let arrival_date = result.flights["0"].le["0"].fmtArrival;
 				let arrival_time = result.flights["0"].le["0"].fmtArrivalTime;
-				let stops = (result.flights["0"].le["0"].noOfStops == "Non Stop") ? 0 : result.flights["0"].le["0"].noOfStops;
-				if (stops == 1) {
-					stops += " stop";
-				}else{
-					stops += " stops";
-				}
+				let stops = (result.flights["0"].le["0"].noOfStops == "Non Stop") ?  "is "+result.flights["0"].le["0"].noOfStops : "has "+result.flights["0"].le["0"].noOfStops;
 				let fare = result.flights["0"].af;
 				passengers = (passengers == 1) ? passengers+' person': passengers+' persons';
-				let RESPONSE_TEXT = "The cheapest flight from "+src+" to "+ dest + " for "+ passengers + " costs "+ fare+ " Rupees. It is in "+flight_class+" class and has " + stops +".";
+				RESPONSE_TEXT = "The cheapest flight from "+src+" to "+ dest + " for "+ passengers + " is "+flight_alirlines+ " "+flight_code +" <say-as interpret-as=\"digits\">"+flight_number+"</say-as>, which costs "+ fare+ " Rupees per person for "+flight_class+" class, and " + stops +".";
 				//"It departs from "+ src + " at " + departure_time + ", " + departure_date + " and arrives to " + dest + " at " + arrival_time + ", "+ arrival_date + "."; 
 				console.log(RESPONSE_TEXT);
 				this.response.cardRenderer(RESPONSE_TEXT);
@@ -98,5 +122,20 @@ const mainHandler = {
 		    });
     },
 };
+
+const failSpeechcons = [
+	"aiyo",
+	"aw man",
+	"oh boy",
+	"oh dear",
+	"oh my",
+	"oh snap",
+	"uh oh"
+	];
+
+function getRandomSpeechcon(data){
+	let i = Math.floor(Math.random() * data.length);
+	return(data[i]);
+}
 
 module.exports = mainHandler;
