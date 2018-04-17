@@ -12,7 +12,7 @@ module.exports.handler = (event, context, callback) => {
 
   console.log('main: Alexa.handler');
   var alexa = Alexa.handler(event, context);
-  alexa.appId = undefined;
+  alexa.appId = "amzn1.ask.skill.114521e9-995f-440f-ac0c-983cdce4733e";
 
   console.log('main: alexa.registerHandlers');
   alexa.registerHandlers(

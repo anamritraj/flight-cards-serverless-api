@@ -8,7 +8,6 @@ const mainHandler = {
         this.emit(':responseReady');
     },
     'GetFlightPriceIntent': function () {
-        
     	let date = this.event.request.intent.slots.date.value,
     		passengers = this.event.request.intent.slots.passengers.value,
     		dest = this.event.request.intent.slots.dest.value,
@@ -58,8 +57,8 @@ const mainHandler = {
 
     	// Check if the city codes are there with us.
     	if (!src_code || !dest_code) {
-			this.response.cardRenderer("Sorry we dont know that place, can you please try again?");
-	        this.response.speak("Sorry we dont know that place, can you please try again?");
+			this.response.cardRenderer("Sorry! we dont know that place, can you please try again?");
+	        this.response.speak("Sorry! we dont know that place, can you please try again?");
 	        this.emit(':responseReady');
     	}
     	// Conslole Logs
@@ -121,6 +120,25 @@ const mainHandler = {
         		this.emit(':responseReady');
 		    });
     },
+
+    'CheckAirportIndiaIntent': function(){
+    	let place = this.event.request.intent.slots.place.value;
+		console.log(place);
+		var result = checkAirport(place),
+			RESPONSE_TEXT;
+		if (result) {
+			RESPONSE_TEXT = "Yes. There is an airport at "+ place;
+		}else{
+			RESPONSE_TEXT = "We could not find any airport at "+ place;
+		}
+		this.response.cardRenderer(RESPONSE_TEXT);
+		this.response.speak(RESPONSE_TEXT);
+		this.emit(':responseReady');
+    },
+
+    'Unhandled': function () {
+        this.emit(':ask', "Sorry I didnt understand that. Say help for assistance.");
+    }
 };
 
 const failSpeechcons = [
@@ -136,6 +154,16 @@ const failSpeechcons = [
 function getRandomSpeechcon(data){
 	let i = Math.floor(Math.random() * data.length);
 	return(data[i]);
+}
+
+function checkAirport(place){
+	var found = false;
+	for (let i = config.CITIES.length - 1; i >= 0; i--) {
+		if(config.CITIES[i].city.toLowerCase() == place.toLowerCase()){
+			found = true;
+		}
+	}
+	return found;
 }
 
 module.exports = mainHandler;
