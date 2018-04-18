@@ -5,7 +5,7 @@ const config = {
     HELP_MESSAGE : ' You can ask me things like, cheapest flight between Delhi and Mumbai for 2 persons or, you can say exit... What can I help you with?',
     HELP_REPROMPT : 'What can I help you with?',
     STOP_MESSAGE : 'Goodbye!',
-    API_URL: "https://ufs.makemytrip.com/flightSOA-web/search/df",
+    API_URL: "api_url_here",
     CITIES: [
 		{
 			city: "Agartala",

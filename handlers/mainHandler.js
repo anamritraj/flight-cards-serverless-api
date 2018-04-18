@@ -1,6 +1,6 @@
 const config = require('../config.js');
 const rp = require('request-promise');
-
+const flightFacts = require('../resources/flight-facts');
 const mainHandler = {
     'LaunchRequest': function () {
         this.response.cardRenderer("Hello! Welcome to Flight Cards!");
@@ -131,6 +131,13 @@ const mainHandler = {
 		}else{
 			RESPONSE_TEXT = "We could not find any airport at "+ place;
 		}
+		this.response.cardRenderer(RESPONSE_TEXT);
+		this.response.speak(RESPONSE_TEXT);
+		this.emit(':responseReady');
+    },
+    
+    'GetFlightFactIntent': function(){
+    	let RESPONSE_TEXT = "Here's a random flight fact for you: "+flightFacts.getRandomFact()
 		this.response.cardRenderer(RESPONSE_TEXT);
 		this.response.speak(RESPONSE_TEXT);
 		this.emit(':responseReady');
